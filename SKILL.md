@@ -1,7 +1,7 @@
 ---
 name: grok-image-cli
 description: Generate and edit images via Grok API from the command line. Secure macOS Keychain storage for xAI API key. Supports batch generation, aspect ratios, and style transfer.
-metadata: {"clawdbot":{"emoji":"🎨","os":["macos"],"requires":{"bins":["grok-img","node"],"env":{"XAI_API_KEY":{"required":false,"description":"xAI API key (fallback when no Keychain entry exists)"}}},"credentials":[{"id":"xai-api-key","label":"xAI API key","storage":"macos-keychain","service":"grok-image-cli","account":"api-key","env_fallback":"XAI_API_KEY"}],"install":[{"id":"npm","kind":"shell","command":"npm install -g grok-image-cli","bins":["grok-img"],"label":"Install grok-image-cli via npm"}],"source":"https://github.com/cyberash-dev/grok-image-cli"}}
+metadata: {"clawdbot":{"emoji":"🎨","os":["macos"],"requires":{"bins":["grok-img","node"],"env":{"XAI_API_KEY":{"required":false,"description":"xAI API key (fallback when no Keychain entry exists)"}}},"credentials":[{"id":"xai-api-key","label":"xAI API key","storage":"macos-keychain","service":"grok-image-cli","account":"api-key","env_fallback":"XAI_API_KEY"}],"install":[{"id":"npm","kind":"shell","command":"npm install -g grok-image-cli","bins":["grok-img"],"label":"Install grok-image-cli via npm"},{"id":"source","kind":"shell","command":"git clone https://github.com/cyberash-dev/grok-image-cli.git && cd grok-image-cli && npm install && npm run build && npm link","bins":["grok-img"],"label":"Install from source (audit before running)"}],"source":"https://github.com/cyberash-dev/grok-image-cli"}}
 ---
 
 # grok-image-cli
@@ -14,6 +14,11 @@ Requires Node.js >= 20.19.0 and macOS. The package is fully open source under th
 
 ```bash
 npm install -g grok-image-cli
+```
+
+The npm package is published with provenance attestation, linking each release to its source commit via GitHub Actions. You can verify the published contents before installing:
+```bash
+npm pack grok-image-cli --dry-run
 ```
 
 Install from source (if you prefer to audit the code before running):
