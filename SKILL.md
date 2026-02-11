@@ -1,7 +1,7 @@
 ---
 name: grok-image-cli
 description: Generate and edit images via Grok API from the command line. Secure macOS Keychain storage for xAI API key. Supports batch generation, aspect ratios, and style transfer.
-metadata: {"clawdbot":{"emoji":"🎨","os":["macos"],"requires":{"bins":["grok-img","node"]},"install":[{"id":"npm","kind":"shell","command":"npm install -g grok-image-cli","bins":["grok-img"],"label":"Install grok-image-cli via npm"}],"source":"https://github.com/cyberash-dev/grok-image-cli"}}
+metadata: {"clawdbot":{"emoji":"🎨","os":["macos"],"requires":{"bins":["grok-img","node"],"env":{"XAI_API_KEY":{"required":false,"description":"xAI API key (fallback when no Keychain entry exists)"}}},"credentials":[{"id":"xai-api-key","label":"xAI API key","storage":"macos-keychain","service":"grok-image-cli","account":"api-key","env_fallback":"XAI_API_KEY"}],"install":[{"id":"npm","kind":"shell","command":"npm install -g grok-image-cli","bins":["grok-img"],"label":"Install grok-image-cli via npm"}],"source":"https://github.com/cyberash-dev/grok-image-cli"}}
 ---
 
 # grok-image-cli
@@ -89,9 +89,9 @@ grok-img edit "Add a vintage film grain effect" -i ./photo.jpg -a 3:2 -o ./edite
 
 The following properties are by design and can be verified in the source code:
 
-- **xAI API key**: stored exclusively in macOS Keychain (service: `grok-image-cli`). By design, never written to disk in plaintext. See [`src/infrastructure/adapters/keychain.adapter.ts`](https://github.com/cyberash-dev/grok-image-cli/blob/main/src/infrastructure/adapters/keychain.adapter.ts) for the implementation.
+- **xAI API key**: stored in macOS Keychain (service: `grok-image-cli`, account: `api-key`). By design, never written to disk in plaintext. If no Keychain entry is found, the CLI falls back to the `XAI_API_KEY` environment variable. See [`src/infrastructure/adapters/keychain.adapter.ts`](https://github.com/cyberash-dev/grok-image-cli/blob/main/src/infrastructure/adapters/keychain.adapter.ts) for the implementation.
 - **No config files**: all settings are passed via CLI flags. Nothing is stored on disk besides the Keychain entry.
-- **Network**: by design, the API key is only sent to `api.x.ai` over HTTPS via the official `@ai-sdk/xai` SDK. No other outbound connections are made. See [`src/infrastructure/adapters/grok-api.adapter.ts`](https://github.com/cyberash-dev/grok-image-cli/blob/main/src/infrastructure/adapters/grok-api.adapter.ts).
+- **Network**: the API key is only sent to `api.x.ai` over HTTPS via the official `@ai-sdk/xai` SDK. When editing images with a remote URL (`-i https://...`), the SDK makes an additional outbound HTTPS request to fetch the source image. No other outbound connections are made by the CLI itself (npm/git fetches during installation are standard package manager behavior). See [`src/infrastructure/adapters/grok-api.adapter.ts`](https://github.com/cyberash-dev/grok-image-cli/blob/main/src/infrastructure/adapters/grok-api.adapter.ts).
 - **Generated images**: saved to the local output directory (default: `./grok-images`). No images are cached or uploaded elsewhere.
 
 ## API Reference
