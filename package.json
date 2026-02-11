@@ -1,6 +1,6 @@
 {
   "name": "grok-image-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI for generating and editing images with Grok API",
   "type": "module",
   "bin": {
