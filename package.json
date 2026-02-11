@@ -1,0 +1,58 @@
+{
+  "name": "grok-image-cli",
+  "version": "0.1.0",
+  "description": "CLI for generating and editing images with Grok API",
+  "type": "module",
+  "bin": {
+    "grok-img": "./dist/main.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "start": "node dist/main.mjs",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
+  "keywords": [
+    "grok",
+    "xai",
+    "image",
+    "cli",
+    "ai",
+    "image-generation",
+    "image-editing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyberash-dev/grok-image-cli.git"
+  },
+  "homepage": "https://github.com/cyberash-dev/grok-image-cli#readme",
+  "bugs": {
+    "url": "https://github.com/cyberash-dev/grok-image-cli/issues"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@ai-sdk/xai": "3.0.53",
+    "ai": "6.0.80",
+    "chalk": "5.6.2",
+    "commander": "13.1.0",
+    "ora": "8.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.14",
+    "@types/node": "22.19.11",
+    "tsdown": "0.20.3",
+    "typescript": "5.9.3"
+  }
+}
