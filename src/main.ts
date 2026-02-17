@@ -3,12 +3,12 @@ import { GenerateImageUseCase } from "./application/usecases/generate-image.usec
 import { GetAuthStatusUseCase } from "./application/usecases/get-auth-status.usecase.js"
 import { LoginUseCase } from "./application/usecases/login.usecase.js"
 import { LogoutUseCase } from "./application/usecases/logout.usecase.js"
+import { CredentialStoreAdapter } from "./infrastructure/adapters/credential-store.adapter.js"
 import { FileStorageAdapter } from "./infrastructure/adapters/file-storage.adapter.js"
 import { GrokApiAdapter } from "./infrastructure/adapters/grok-api.adapter.js"
-import { KeychainAdapter } from "./infrastructure/adapters/keychain.adapter.js"
 import { createCli } from "./presentation/cli.js"
 
-const keyStore = new KeychainAdapter()
+const keyStore = new CredentialStoreAdapter()
 const imageGenerator = new GrokApiAdapter()
 const fileStorage = new FileStorageAdapter()
 

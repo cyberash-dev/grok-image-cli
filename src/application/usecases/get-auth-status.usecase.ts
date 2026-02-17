@@ -3,7 +3,7 @@ import type { KeyStorePort } from "../../domain/ports/key-store.port.js"
 export type AuthStatus = {
   authenticated: boolean
   maskedKey: string | null
-  source: "keychain" | "env" | null
+  source: "credential-store" | "env" | null
 }
 
 export class GetAuthStatusUseCase {
@@ -21,7 +21,7 @@ export class GetAuthStatusUseCase {
         ? `${key.slice(0, 4)}${"*".repeat(key.length - 8)}${key.slice(-4)}`
         : "****"
 
-    const source = process.env.XAI_API_KEY === key ? "env" : "keychain"
+    const source = process.env.XAI_API_KEY === key ? "env" : "credential-store"
 
     return { authenticated: true, maskedKey: masked, source }
   }

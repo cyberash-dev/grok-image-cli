@@ -22,7 +22,7 @@ execute(): Promise<AuthStatus>
 type AuthStatus = {
   authenticated: boolean
   maskedKey: string | null
-  source: "keychain" | "env" | null
+  source: "credential-store" | "env" | null
 }
 ```
 
@@ -30,7 +30,7 @@ type AuthStatus = {
 |---|---|---|
 | `authenticated` | `boolean` | Наличие API-ключа |
 | `maskedKey` | `string \| null` | Маскированный ключ или `null` |
-| `source` | `"keychain" \| "env" \| null` | Источник ключа или `null` |
+| `source` | `"credential-store" \| "env" \| null` | Источник ключа или `null` |
 
 ## Входные параметры
 
@@ -52,7 +52,7 @@ flowchart TD
   E --> G{Совпадает с XAI_API_KEY?}
   F --> G
   G -->|Да| H["source = env"]
-  G -->|Нет| I["source = keychain"]
+  G -->|Нет| I["source = credential-store"]
   H --> J["Вернуть { authenticated: true, maskedKey, source }"]
   I --> J
 ```
@@ -64,7 +64,7 @@ flowchart TD
    - Иначе: `****`
 4. Определить источник:
    - Если `process.env.XAI_API_KEY === key` → `"env"`
-   - Иначе → `"keychain"`
+   - Иначе → `"credential-store"`
 5. Вернуть `{ authenticated: true, maskedKey: masked, source }`
 
 ## Поведение на уровне Presentation

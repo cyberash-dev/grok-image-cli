@@ -6,7 +6,7 @@
 
 - **Версия**: 0.1.1
 - **Лицензия**: MIT
-- **Платформа**: macOS (Keychain), fallback через `XAI_API_KEY`
+- **Платформа**: кроссплатформенная (macOS, Windows, Linux)
 - **Runtime**: Node.js >= 20.19.0, ESM
 
 ## Архитектурный стиль
@@ -38,7 +38,7 @@ graph TB
 
   subgraph infrastructure [Infrastructure Layer]
     GrokAPI[GrokApiAdapter]
-    Keychain[KeychainAdapter]
+    CredStore[CredentialStoreAdapter]
     FileStorage[FileStorageAdapter]
   end
 
@@ -71,9 +71,9 @@ src/
 │       └── get-auth-status.usecase.ts
 ├── infrastructure/
 │   └── adapters/
-│       ├── grok-api.adapter.ts      # ImageGeneratorPort → xAI SDK
-│       ├── keychain.adapter.ts      # KeyStorePort → macOS Keychain
-│       └── file-storage.adapter.ts  # FileStoragePort → Node.js fs
+│       ├── grok-api.adapter.ts              # ImageGeneratorPort → xAI SDK
+│       ├── credential-store.adapter.ts      # KeyStorePort → cross-keychain
+│       └── file-storage.adapter.ts          # FileStoragePort → Node.js fs
 └── presentation/
     ├── cli.ts                       # Commander program
     └── commands/
@@ -154,7 +154,7 @@ type FileStoragePort = {
 
 | Ошибка | Когда выбрасывается |
 |---|---|
-| `ApiKeyMissingError` | API-ключ не найден ни в Keychain, ни в переменной окружения |
+| `ApiKeyMissingError` | API-ключ не найден ни в системном хранилище, ни в переменной окружения |
 | `ApiError` | Ошибка при обращении к xAI API (включает `cause` для оригинальной ошибки) |
 | `ImageNotFoundError` | Локальный файл изображения не существует по указанному пути |
 
@@ -187,17 +187,21 @@ type FileStoragePort = {
 - **Редактирование**: вызов `generateImage()` с промптом и изображением-источником (URL или `Uint8Array`)
 - **Обработка ошибок**: перехват `NoImageGeneratedError` и обёртка в доменный `ApiError`
 
-### KeychainAdapter
+### CredentialStoreAdapter
 
-Файл: `infrastructure/adapters/keychain.adapter.ts`
+Файл: `infrastructure/adapters/credential-store.adapter.ts`
 
-Реализует `KeyStorePort`. Хранит API-ключ в macOS Keychain через утилиту `security`.
+Реализует `KeyStorePort`. Хранит API-ключ в нативном хранилище ОС через библиотеку `cross-keychain`.
 
+- **Поддерживаемые ОС**:
+  - macOS — Keychain
+  - Windows — Credential Manager
+  - Linux — Secret Service (libsecret)
 - **Service**: `grok-image-cli`
 - **Account**: `api-key`
-- **save**: `security add-generic-password -U -s grok-image-cli -a api-key -w <key>`
-- **get**: `security find-generic-password -s grok-image-cli -a api-key -w`, при неудаче — fallback на `process.env.XAI_API_KEY`
-- **remove**: `security delete-generic-password -s grok-image-cli -a api-key`
+- **save**: `setPassword("grok-image-cli", "api-key", key)`
+- **get**: `getPassword("grok-image-cli", "api-key")`, при неудаче — fallback на `process.env.XAI_API_KEY`
+- **remove**: `deletePassword("grok-image-cli", "api-key")`
 
 ### FileStorageAdapter
 
@@ -217,8 +221,8 @@ CLI-интерфейс на базе `commander`. Зависит от Applicatio
 
 | Команда | Описание |
 |---|---|
-| `grok-img auth login` | Ввод и сохранение API-ключа в Keychain |
-| `grok-img auth logout` | Удаление API-ключа из Keychain |
+| `grok-img auth login` | Ввод и сохранение API-ключа в системном хранилище |
+| `grok-img auth logout` | Удаление API-ключа из системного хранилища |
 | `grok-img auth status` | Проверка статуса аутентификации |
 | `grok-img generate <prompt>` | Генерация изображений по промпту |
 | `grok-img edit <prompt> -i <image>` | Редактирование изображения по промпту |
@@ -258,7 +262,7 @@ CLI-интерфейс на базе `commander`. Зависит от Applicatio
 ```mermaid
 graph LR
   subgraph adapters [Adapters]
-    KA[KeychainAdapter]
+    KA[CredentialStoreAdapter]
     GA[GrokApiAdapter]
     FA[FileStorageAdapter]
   end
@@ -296,6 +300,7 @@ graph LR
 | Линтер/Форматтер | Biome | 2.3.14 |
 | CLI-фреймворк | commander | 13.1.0 |
 | AI SDK | @ai-sdk/xai + ai | 3.0.53 / 6.0.80 |
+| Хранение ключей | cross-keychain | latest |
 | UI (терминал) | chalk, ora | 5.6.2 / 8.2.0 |
 
 ## Сборка и дистрибуция
@@ -308,7 +313,7 @@ graph LR
 
 ## Безопасность
 
-- API-ключ хранится в macOS Keychain, не записывается в файлы
+- API-ключ хранится в нативном хранилище ОС (macOS Keychain / Windows Credential Manager / Linux Secret Service), не записывается в файлы
 - Fallback через переменную окружения `XAI_API_KEY`
 - Все запросы к API — по HTTPS
 - При отображении ключа в `auth status` — маскировка (первые 4 + последние 4 символа)

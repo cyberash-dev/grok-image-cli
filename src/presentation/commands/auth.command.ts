@@ -28,7 +28,7 @@ export function createAuthCommand(useCases: {
 
   auth
     .command("login")
-    .description("Store your xAI API key in the system keychain")
+    .description("Store your xAI API key in the system credential store")
     .action(async () => {
       try {
         const apiKey = await readInput(chalk.cyan("Enter your xAI API key: "))
@@ -39,7 +39,7 @@ export function createAuthCommand(useCases: {
         }
 
         await useCases.login.execute(apiKey)
-        console.log(chalk.green("API key saved to keychain successfully."))
+        console.log(chalk.green("API key saved successfully."))
       } catch (error) {
         console.error(
           chalk.red(
@@ -52,11 +52,11 @@ export function createAuthCommand(useCases: {
 
   auth
     .command("logout")
-    .description("Remove your xAI API key from the system keychain")
+    .description("Remove your xAI API key from the system credential store")
     .action(async () => {
       try {
         await useCases.logout.execute()
-        console.log(chalk.green("API key removed from keychain."))
+        console.log(chalk.green("API key removed successfully."))
       } catch (error) {
         console.error(
           chalk.red(
