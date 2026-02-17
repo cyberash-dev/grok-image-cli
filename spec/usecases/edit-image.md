@@ -22,7 +22,7 @@ execute(params: EditParams, outputDir: string): Promise<string>
 
 | Параметр | Тип | Описание |
 |---|---|---|
-| `params` | `EditParams` | Параметры редактирования (prompt, imageSource, aspectRatio) |
+| `params` | `EditParams` | Параметры редактирования (prompt, imageSource, aspectRatio, model) |
 | `outputDir` | `string` | Абсолютный путь к директории для сохранения |
 
 ## Выходные данные

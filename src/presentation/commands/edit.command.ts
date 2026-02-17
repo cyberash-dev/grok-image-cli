@@ -3,7 +3,14 @@ import chalk from "chalk"
 import { Command } from "commander"
 import ora from "ora"
 import type { EditImageUseCase } from "../../application/usecases/edit-image.usecase.js"
+import type { Model } from "../../domain/entities/generate-params.js"
 import { ApiError, ApiKeyMissingError, ImageNotFoundError } from "../../domain/errors.js"
+
+const VALID_MODELS: Model[] = [
+  "grok-2-image-1212",
+  "grok-imagine-image-pro",
+  "grok-imagine-image",
+]
 
 const VALID_RATIOS = [
   "1:1",
@@ -27,9 +34,17 @@ export function createEditCommand(editUseCase: EditImageUseCase): Command {
     .description("Edit an existing image with a text prompt")
     .argument("<prompt>", "Text prompt describing the edit to apply")
     .requiredOption("-i, --image <path>", "Source image (local file path or URL)")
+    .option("-m, --model <model>", "Model to use", "grok-imagine-image")
     .option("-a, --aspect-ratio <ratio>", "Aspect ratio", "auto")
     .option("-o, --output <dir>", "Output directory", "./grok-images")
     .action(async (prompt: string, options) => {
+      if (!VALID_MODELS.includes(options.model)) {
+        console.error(
+          chalk.red(`Invalid model. Valid options: ${VALID_MODELS.join(", ")}`),
+        )
+        process.exit(1)
+      }
+
       if (!VALID_RATIOS.includes(options.aspectRatio)) {
         console.error(
           chalk.red(`Invalid aspect ratio. Valid options: ${VALID_RATIOS.join(", ")}`),
@@ -46,7 +61,7 @@ export function createEditCommand(editUseCase: EditImageUseCase): Command {
 
       try {
         const savedPath = await editUseCase.execute(
-          { prompt, imageSource, aspectRatio: options.aspectRatio },
+          { prompt, imageSource, aspectRatio: options.aspectRatio, model: options.model },
           outputDir,
         )
 

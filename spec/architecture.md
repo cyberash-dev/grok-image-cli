@@ -90,6 +90,7 @@ src/
 
 | Сущность | Файл | Назначение |
 |---|---|---|
+| `Model` | `domain/entities/generate-params.ts` | Тип доступных моделей xAI |
 | `GenerateParams` | `domain/entities/generate-params.ts` | Параметры генерации изображения |
 | `EditParams` | `domain/entities/edit-params.ts` | Параметры редактирования изображения |
 | `ImageResult` | `domain/entities/image-result.ts` | Результат генерации/редактирования |
@@ -182,9 +183,10 @@ type FileStoragePort = {
 
 Реализует `ImageGeneratorPort`. Использует `@ai-sdk/xai` и `ai` SDK для взаимодействия с xAI API.
 
-- **Модель**: `grok-imagine-image`
-- **Генерация**: вызов `generateImage()` с текстовым промптом
-- **Редактирование**: вызов `generateImage()` с промптом и изображением-источником (URL или `Uint8Array`)
+- **Модель по умолчанию**: `grok-imagine-image`
+- **Доступные модели**: `grok-2-image-1212`, `grok-imagine-image-pro`, `grok-imagine-image`
+- **Генерация**: вызов `generateImage()` с текстовым промптом и выбранной моделью
+- **Редактирование**: вызов `generateImage()` с промптом, изображением-источником (URL или `Uint8Array`) и выбранной моделью
 - **Обработка ошибок**: перехват `NoImageGeneratedError` и обёртка в доменный `ApiError`
 
 ### CredentialStoreAdapter
@@ -231,6 +233,7 @@ CLI-интерфейс на базе `commander`. Зависит от Applicatio
 
 | Опция | Описание | По умолчанию |
 |---|---|---|
+| `-m, --model <model>` | Модель xAI | `grok-imagine-image` |
 | `-a, --aspect-ratio <ratio>` | Соотношение сторон | `auto` |
 | `-n, --count <number>` | Количество изображений (1-10) | `1` |
 | `-o, --output <dir>` | Директория для сохранения | `./grok-images` |
@@ -240,6 +243,7 @@ CLI-интерфейс на базе `commander`. Зависит от Applicatio
 | Опция | Описание | По умолчанию |
 |---|---|---|
 | `-i, --image <path>` | Исходное изображение (путь или URL) | обязательный |
+| `-m, --model <model>` | Модель xAI | `grok-imagine-image` |
 | `-a, --aspect-ratio <ratio>` | Соотношение сторон | `auto` |
 | `-o, --output <dir>` | Директория для сохранения | `./grok-images` |
 

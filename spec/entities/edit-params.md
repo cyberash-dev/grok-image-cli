@@ -7,10 +7,13 @@
 ## Определение
 
 ```typescript
+type Model = "grok-2-image-1212" | "grok-imagine-image-pro" | "grok-imagine-image"
+
 type EditParams = {
   prompt: string
   imageSource: string | Uint8Array
   aspectRatio: string
+  model?: Model
 }
 ```
 
@@ -21,6 +24,7 @@ type EditParams = {
 | `prompt` | `string` | Текстовое описание редактирования |
 | `imageSource` | `string \| Uint8Array` | Источник изображения |
 | `aspectRatio` | `string` | Соотношение сторон результата |
+| `model` | `Model` | Модель для редактирования. По умолчанию `grok-imagine-image` |
 
 ## Ограничения
 
@@ -30,6 +34,7 @@ type EditParams = {
   - **URL** (`string`, начинается с `http`) — передаётся в API как `new URL(imageSource)`
   - **Бинарные данные** (`Uint8Array`) — передаются в API напрямую
 - `aspectRatio` — одно из допустимых значений: `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `2:1`, `1:2`, `19.5:9`, `9:19.5`, `20:9`, `9:20`, `auto` (валидация на уровне Presentation Layer)
+- `model` — опциональное поле, одно из значений: `grok-2-image-1212`, `grok-imagine-image-pro`, `grok-imagine-image`. По умолчанию `grok-imagine-image` (валидация на уровне Presentation Layer)
 
 ## Использование
 

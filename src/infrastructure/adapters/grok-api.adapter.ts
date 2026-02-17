@@ -6,7 +6,7 @@ import type { ImageResult } from "../../domain/entities/image-result.js"
 import { ApiError } from "../../domain/errors.js"
 import type { ImageGeneratorPort } from "../../domain/ports/image-generator.port.js"
 
-const MODEL = "grok-imagine-image"
+const DEFAULT_MODEL = "grok-imagine-image"
 
 export class GrokApiAdapter implements ImageGeneratorPort {
   async generate(params: GenerateParams, apiKey: string): Promise<ImageResult[]> {
@@ -14,9 +14,9 @@ export class GrokApiAdapter implements ImageGeneratorPort {
 
     try {
       const { images } = await generateImage({
-        model: xai.image(MODEL),
+        model: xai.image(params.model ?? DEFAULT_MODEL),
         prompt: params.prompt,
-        aspectRatio: params.aspectRatio,
+        aspectRatio: params.aspectRatio as `${number}:${number}`,
         n: params.count,
       })
 
@@ -44,15 +44,12 @@ export class GrokApiAdapter implements ImageGeneratorPort {
 
     try {
       const { image } = await generateImage({
-        model: xai.image(MODEL),
+        model: xai.image(params.model ?? DEFAULT_MODEL),
         prompt: {
           text: params.prompt,
-          images:
-            typeof params.imageSource === "string"
-              ? [new URL(params.imageSource)]
-              : [params.imageSource],
+          images: [params.imageSource],
         },
-        aspectRatio: params.aspectRatio,
+        aspectRatio: params.aspectRatio as `${number}:${number}`,
       })
 
       return {

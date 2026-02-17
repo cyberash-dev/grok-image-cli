@@ -22,7 +22,7 @@ execute(params: GenerateParams, outputDir: string): Promise<string[]>
 
 | Параметр | Тип | Описание |
 |---|---|---|
-| `params` | `GenerateParams` | Параметры генерации (prompt, count, aspectRatio) |
+| `params` | `GenerateParams` | Параметры генерации (prompt, count, aspectRatio, model) |
 | `outputDir` | `string` | Абсолютный путь к директории для сохранения |
 
 ## Выходные данные

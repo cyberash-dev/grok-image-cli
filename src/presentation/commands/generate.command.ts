@@ -3,7 +3,14 @@ import chalk from "chalk"
 import { Command } from "commander"
 import ora from "ora"
 import type { GenerateImageUseCase } from "../../application/usecases/generate-image.usecase.js"
+import type { Model } from "../../domain/entities/generate-params.js"
 import { ApiError, ApiKeyMissingError } from "../../domain/errors.js"
+
+const VALID_MODELS: Model[] = [
+  "grok-2-image-1212",
+  "grok-imagine-image-pro",
+  "grok-imagine-image",
+]
 
 const VALID_RATIOS = [
   "1:1",
@@ -26,6 +33,7 @@ export function createGenerateCommand(generateUseCase: GenerateImageUseCase): Co
   return new Command("generate")
     .description("Generate images from a text prompt")
     .argument("<prompt>", "Text prompt describing the image to generate")
+    .option("-m, --model <model>", "Model to use", "grok-imagine-image")
     .option("-a, --aspect-ratio <ratio>", "Aspect ratio", "auto")
     .option("-n, --count <number>", "Number of images (1-10)", "1")
     .option("-o, --output <dir>", "Output directory", "./grok-images")
@@ -33,6 +41,13 @@ export function createGenerateCommand(generateUseCase: GenerateImageUseCase): Co
       const count = parseInt(options.count, 10)
       if (Number.isNaN(count) || count < 1 || count > 10) {
         console.error(chalk.red("Count must be a number between 1 and 10."))
+        process.exit(1)
+      }
+
+      if (!VALID_MODELS.includes(options.model)) {
+        console.error(
+          chalk.red(`Invalid model. Valid options: ${VALID_MODELS.join(", ")}`),
+        )
         process.exit(1)
       }
 
@@ -48,7 +63,7 @@ export function createGenerateCommand(generateUseCase: GenerateImageUseCase): Co
 
       try {
         const paths = await generateUseCase.execute(
-          { prompt, count, aspectRatio: options.aspectRatio },
+          { prompt, count, aspectRatio: options.aspectRatio, model: options.model },
           outputDir,
         )
 

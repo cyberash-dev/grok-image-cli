@@ -6,7 +6,7 @@ metadata: {"clawdbot":{"emoji":"🎨","os":["macos","windows","linux"],"requires
 
 # grok-image-cli
 
-A CLI for generating and editing images using the xAI Grok API (`grok-imagine-image` model). Powered by the official `@ai-sdk/xai` SDK. Credentials are stored in the OS native credential store (macOS Keychain, Windows Credential Manager, Linux Secret Service) via `cross-keychain`.
+A CLI for generating and editing images using the xAI Grok API. Supports multiple models: `grok-imagine-image` (default), `grok-imagine-image-pro`, `grok-2-image-1212`. Powered by the official `@ai-sdk/xai` SDK. Credentials are stored in the OS native credential store (macOS Keychain, Windows Credential Manager, Linux Secret Service) via `cross-keychain`.
 
 ## Installation
 
@@ -33,9 +33,10 @@ After installation the `grok-img` command is available globally.
 ## Quick Start
 
 ```bash
-grok-img auth login                                          # Interactive prompt: enter xAI API key
-grok-img generate "A futuristic city skyline at night"       # Generate an image
-grok-img edit "Make it a watercolor painting" -i ./photo.jpg # Edit an existing image
+grok-img auth login                                                      # Interactive prompt: enter xAI API key
+grok-img generate "A futuristic city skyline at night"                   # Generate with default model
+grok-img generate "A futuristic city skyline at night" -m grok-imagine-image-pro  # Use pro model
+grok-img edit "Make it a watercolor painting" -i ./photo.jpg             # Edit an existing image
 ```
 
 ## API Key Management
@@ -63,6 +64,8 @@ The CLI also supports the `XAI_API_KEY` environment variable as a fallback when 
 grok-img generate "A collage of London landmarks in street-art style"
 grok-img generate "Mountain landscape at sunrise" -n 4 -a 16:9
 grok-img generate "A serene Japanese garden" -o ./my-images
+grok-img generate "Photorealistic portrait" -m grok-imagine-image-pro
+grok-img generate "Abstract art" -m grok-2-image-1212
 ```
 
 ## Image Editing
@@ -79,6 +82,7 @@ grok-img edit "Add a vintage film grain effect" -i ./photo.jpg -a 3:2 -o ./edite
 ### `generate`
 | Flag | Description | Default |
 |------|-------------|---------|
+| `-m, --model <model>` | Model (grok-imagine-image, grok-imagine-image-pro, grok-2-image-1212) | grok-imagine-image |
 | `-a, --aspect-ratio <ratio>` | Aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3, 2:1, 1:2, 19.5:9, 9:19.5, 20:9, 9:20, auto) | auto |
 | `-n, --count <number>` | Number of images to generate (1-10) | 1 |
 | `-o, --output <dir>` | Output directory | ./grok-images |
@@ -87,6 +91,7 @@ grok-img edit "Add a vintage film grain effect" -i ./photo.jpg -a 3:2 -o ./edite
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-i, --image <path>` | Source image (local file path or URL) | **required** |
+| `-m, --model <model>` | Model (grok-imagine-image, grok-imagine-image-pro, grok-2-image-1212) | grok-imagine-image |
 | `-a, --aspect-ratio <ratio>` | Aspect ratio | auto |
 | `-o, --output <dir>` | Output directory | ./grok-images |
 

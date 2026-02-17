@@ -7,10 +7,13 @@
 ## Определение
 
 ```typescript
+type Model = "grok-2-image-1212" | "grok-imagine-image-pro" | "grok-imagine-image"
+
 type GenerateParams = {
   prompt: string
   count: number
   aspectRatio: string
+  model?: Model
 }
 ```
 
@@ -21,12 +24,14 @@ type GenerateParams = {
 | `prompt` | `string` | Текстовое описание изображения для генерации |
 | `count` | `number` | Количество изображений для генерации |
 | `aspectRatio` | `string` | Соотношение сторон результата |
+| `model` | `Model` | Модель для генерации. По умолчанию `grok-imagine-image` |
 
 ## Ограничения
 
 - `prompt` — непустая строка, передаётся напрямую в xAI API
 - `count` — целое число от 1 до 10 (валидация на уровне Presentation Layer)
 - `aspectRatio` — одно из допустимых значений: `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `2:1`, `1:2`, `19.5:9`, `9:19.5`, `20:9`, `9:20`, `auto` (валидация на уровне Presentation Layer)
+- `model` — опциональное поле, одно из значений: `grok-2-image-1212`, `grok-imagine-image-pro`, `grok-imagine-image`. По умолчанию `grok-imagine-image` (валидация на уровне Presentation Layer)
 
 ## Использование
 
