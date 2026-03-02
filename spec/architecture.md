@@ -73,7 +73,6 @@ src/
 │   └── adapters/
 │       ├── grok-api.adapter.ts              # ImageGeneratorPort → xAI SDK
 │       ├── keychain.adapter.ts              # KeyStorePort → cross-keychain (OS Keychain)
-│       ├── pass.adapter.ts                  # KeyStorePort → pass/gopass CLI
 │       └── file-storage.adapter.ts          # FileStoragePort → Node.js fs
 │   └── key-store-chain.ts                   # KeyStorePort (Chain of Responsibility)
 └── presentation/
@@ -205,7 +204,7 @@ type FileStoragePort = {
 - **get**: возвращает первый ненулевой результат из цепочки
 - **remove**: удаляет из всех хранилищ (best-effort, ошибки поглощаются)
 
-**Цепочка по умолчанию**: `KeychainAdapter → PassAdapter`
+**Цепочка по умолчанию**: `KeychainAdapter`
 
 Fallback для `get()` — переменная окружения `XAI_API_KEY`, подключается в
 Composition Root (`main.ts`) как инлайн-обёртка поверх цепочки.
@@ -226,20 +225,6 @@ Composition Root (`main.ts`) как инлайн-обёртка поверх ц�
 - **save**: `setPassword("grok-image-cli", "api-key", key)`
 - **get**: `getPassword("grok-image-cli", "api-key")`, возвращает `null` при ошибке
 - **remove**: `deletePassword("grok-image-cli", "api-key")`
-
-### PassAdapter
-
-Файл: `infrastructure/adapters/pass.adapter.ts`
-
-Реализует `KeyStorePort`. Хранит API-ключ через CLI-инструмент `gopass` или `pass`
-(GPG-шифрованное хранилище паролей). Работает в headless/SSH-окружениях.
-
-- **Детектирование**: `gopass` (приоритет) → `pass`; если не найден — все методы
-  бросают ошибку
-- **Secret path**: `grok-image-cli/api-key`
-- **save**: `gopass insert -f` / `pass insert -m --force` (stdin)
-- **get**: `gopass show` / `pass show`, первая строка вывода
-- **remove**: `gopass rm -f` / `pass rm --force`
 
 ### FileStorageAdapter
 
@@ -340,7 +325,7 @@ graph LR
 | Линтер/Форматтер | Biome | 2.3.14 |
 | CLI-фреймворк | commander | 13.1.0 |
 | AI SDK | @ai-sdk/xai + ai | 3.0.53 / 6.0.80 |
-| Хранение ключей | cross-keychain, node:child_process | — |
+| Хранение ключей | cross-keychain | — |
 | UI (терминал) | chalk, ora | 5.6.2 / 8.2.0 |
 
 ## Сборка и дистрибуция
@@ -353,10 +338,11 @@ graph LR
 
 ## Безопасность
 
-- API-ключ хранится через цепочку резервных хранилищ:
-  1. **Keychain** — нативное хранилище ОС (macOS Keychain / Windows Credential Manager / Linux Secret Service)
-  2. **pass/gopass** — GPG-шифрованное CLI-хранилище паролей; работает в headless/SSH-окружениях
-- Если ни одно хранилище недоступно, `auth login` выводит инструкцию с предложением
+- API-ключ хранится в нативном хранилище ОС через `cross-keychain`:
+  - macOS — Keychain
+  - Windows — Credential Manager
+  - Linux — Secret Service (libsecret / GNOME Keyring)
+- Если системное хранилище недоступно, `auth login` выводит инструкцию с предложением
   задать переменную окружения `XAI_API_KEY` вручную
 - `XAI_API_KEY` — fallback только для чтения (`get()`); `auth login` в неё не пишет
 - При сохранении ключа пользователю выводится сообщение о том, в какое хранилище он записан

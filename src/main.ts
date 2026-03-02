@@ -8,15 +8,11 @@ import type { KeyStorePort } from "./domain/ports/key-store.port.js"
 import { FileStorageAdapter } from "./infrastructure/adapters/file-storage.adapter.js"
 import { GrokApiAdapter } from "./infrastructure/adapters/grok-api.adapter.js"
 import { KeychainAdapter } from "./infrastructure/adapters/keychain.adapter.js"
-import { PassAdapter } from "./infrastructure/adapters/pass.adapter.js"
 import { KeyStoreChain } from "./infrastructure/key-store-chain.js"
 import { createCli } from "./presentation/cli.js"
 
 const chain = new KeyStoreChain(
-  [
-    { store: new KeychainAdapter(), name: "Keychain" },
-    { store: new PassAdapter(), name: "pass" },
-  ],
+  [{ store: new KeychainAdapter(), name: "Keychain" }],
   (name) => console.log(chalk.dim(`Key stored in: ${name}`)),
 )
 

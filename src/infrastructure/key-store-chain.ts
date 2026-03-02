@@ -17,7 +17,7 @@ export class KeyStoreChain implements KeyStorePort {
       } catch {}
     }
     throw new Error(
-      "Could not save the API key: Keychain is unavailable and pass/gopass is not installed.\n" +
+      "Could not save the API key: system keychain is unavailable.\n" +
         "Set the environment variable instead:\n\n" +
         "  export XAI_API_KEY=<your-key>",
     )
