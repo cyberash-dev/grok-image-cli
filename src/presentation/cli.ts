@@ -1,4 +1,5 @@
 import { Command } from "commander"
+import pkg from "../../package.json" with { type: "json" }
 import type { EditImageUseCase } from "../application/usecases/edit-image.usecase.js"
 import type { GenerateImageUseCase } from "../application/usecases/generate-image.usecase.js"
 import type { GetAuthStatusUseCase } from "../application/usecases/get-auth-status.usecase.js"
@@ -20,7 +21,7 @@ export function createCli(useCases: UseCases): Command {
   const program = new Command()
     .name("grok-img")
     .description("CLI for generating and editing images with Grok API")
-    .version("1.0.0")
+    .version(pkg.version)
 
   program.addCommand(
     createAuthCommand({
