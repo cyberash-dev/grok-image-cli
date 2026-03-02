@@ -72,8 +72,11 @@ src/
 ├── infrastructure/
 │   └── adapters/
 │       ├── grok-api.adapter.ts              # ImageGeneratorPort → xAI SDK
-│       ├── credential-store.adapter.ts      # KeyStorePort → cross-keychain
+│       ├── keychain.adapter.ts              # KeyStorePort → cross-keychain (OS Keychain)
+│       ├── pass.adapter.ts                  # KeyStorePort → pass/gopass CLI
+│       ├── env-key-store.adapter.ts         # KeyStorePort → XAI_API_KEY (read-only)
 │       └── file-storage.adapter.ts          # FileStoragePort → Node.js fs
+│   └── key-store-chain.ts                   # KeyStorePort (Chain of Responsibility)
 └── presentation/
     ├── cli.ts                       # Commander program
     └── commands/
@@ -189,11 +192,27 @@ type FileStoragePort = {
 - **Редактирование**: вызов `generateImage()` с промптом, изображением-источником (URL или `Uint8Array`) и выбранной моделью
 - **Обработка ошибок**: перехват `NoImageGeneratedError` и обёртка в доменный `ApiError`
 
-### CredentialStoreAdapter
+### KeyStoreChain
 
-Файл: `infrastructure/adapters/credential-store.adapter.ts`
+Файл: `infrastructure/key-store-chain.ts`
 
-Реализует `KeyStorePort`. Хранит API-ключ в нативном хранилище ОС через библиотеку `cross-keychain`.
+Реализует `KeyStorePort`. Цепочка хранилищ по паттерну Chain of Responsibility.
+Принимает упорядоченный список именованных хранилищ и опциональный callback
+`onSave(storeName)`, вызываемый при успешном сохранении.
+
+- **save**: перебирает хранилища по порядку, сохраняет в первое доступное; при
+  успехе вызывает `onSave(name)`; если все хранилища недоступны — бросает последнюю ошибку
+- **get**: возвращает первый ненулевой результат из цепочки
+- **remove**: удаляет из всех хранилищ (best-effort, ошибки поглощаются)
+
+**Цепочка по умолчанию**: `KeychainAdapter → PassAdapter → EnvKeyStoreAdapter`
+
+### KeychainAdapter
+
+Файл: `infrastructure/adapters/keychain.adapter.ts`
+
+Реализует `KeyStorePort`. Хранит API-ключ в нативном хранилище ОС через
+библиотеку `cross-keychain`.
 
 - **Поддерживаемые ОС**:
   - macOS — Keychain
@@ -202,8 +221,33 @@ type FileStoragePort = {
 - **Service**: `grok-image-cli`
 - **Account**: `api-key`
 - **save**: `setPassword("grok-image-cli", "api-key", key)`
-- **get**: `getPassword("grok-image-cli", "api-key")`, при неудаче — fallback на `process.env.XAI_API_KEY`
+- **get**: `getPassword("grok-image-cli", "api-key")`, возвращает `null` при ошибке
 - **remove**: `deletePassword("grok-image-cli", "api-key")`
+
+### PassAdapter
+
+Файл: `infrastructure/adapters/pass.adapter.ts`
+
+Реализует `KeyStorePort`. Хранит API-ключ через CLI-инструмент `gopass` или `pass`
+(GPG-шифрованное хранилище паролей). Работает в headless/SSH-окружениях.
+
+- **Детектирование**: `gopass` (приоритет) → `pass`; если не найден — все методы
+  бросают ошибку
+- **Secret path**: `grok-image-cli/api-key`
+- **save**: `gopass insert -f` / `pass insert -m --force` (stdin)
+- **get**: `gopass show` / `pass show`, первая строка вывода
+- **remove**: `gopass rm -f` / `pass rm --force`
+
+### EnvKeyStoreAdapter
+
+Файл: `infrastructure/adapters/env-key-store.adapter.ts`
+
+Реализует `KeyStorePort`. Read-only адаптер для переменной окружения `XAI_API_KEY`.
+Используется как последний fallback в цепочке.
+
+- **get**: возвращает `process.env.XAI_API_KEY ?? null`
+- **save**: бросает ошибку (переменная окружения доступна только для чтения)
+- **remove**: no-op
 
 ### FileStorageAdapter
 
@@ -304,7 +348,7 @@ graph LR
 | Линтер/Форматтер | Biome | 2.3.14 |
 | CLI-фреймворк | commander | 13.1.0 |
 | AI SDK | @ai-sdk/xai + ai | 3.0.53 / 6.0.80 |
-| Хранение ключей | cross-keychain | latest |
+| Хранение ключей | cross-keychain, node:child_process | — |
 | UI (терминал) | chalk, ora | 5.6.2 / 8.2.0 |
 
 ## Сборка и дистрибуция
@@ -317,7 +361,10 @@ graph LR
 
 ## Безопасность
 
-- API-ключ хранится в нативном хранилище ОС (macOS Keychain / Windows Credential Manager / Linux Secret Service), не записывается в файлы
-- Fallback через переменную окружения `XAI_API_KEY`
+- API-ключ хранится через цепочку резервных хранилищ:
+  1. **Keychain** — нативное хранилище ОС (macOS Keychain / Windows Credential Manager / Linux Secret Service)
+  2. **pass/gopass** — GPG-шифрованное CLI-хранилище паролей; работает в headless/SSH-окружениях
+  3. **XAI_API_KEY** — переменная окружения (только для чтения, используется как последний fallback)
+- При сохранении ключа пользователю выводится сообщение о том, в какое хранилище он записан
 - Все запросы к API — по HTTPS
 - При отображении ключа в `auth status` — маскировка (первые 4 + последние 4 символа)
