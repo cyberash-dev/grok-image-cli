@@ -4,7 +4,7 @@ import { GenerateImageUseCase } from "./application/usecases/generate-image.usec
 import { GetAuthStatusUseCase } from "./application/usecases/get-auth-status.usecase.js"
 import { LoginUseCase } from "./application/usecases/login.usecase.js"
 import { LogoutUseCase } from "./application/usecases/logout.usecase.js"
-import { EnvKeyStoreAdapter } from "./infrastructure/adapters/env-key-store.adapter.js"
+import type { KeyStorePort } from "./domain/ports/key-store.port.js"
 import { FileStorageAdapter } from "./infrastructure/adapters/file-storage.adapter.js"
 import { GrokApiAdapter } from "./infrastructure/adapters/grok-api.adapter.js"
 import { KeychainAdapter } from "./infrastructure/adapters/keychain.adapter.js"
@@ -12,14 +12,19 @@ import { PassAdapter } from "./infrastructure/adapters/pass.adapter.js"
 import { KeyStoreChain } from "./infrastructure/key-store-chain.js"
 import { createCli } from "./presentation/cli.js"
 
-const keyStore = new KeyStoreChain(
+const chain = new KeyStoreChain(
   [
     { store: new KeychainAdapter(), name: "Keychain" },
     { store: new PassAdapter(), name: "pass" },
-    { store: new EnvKeyStoreAdapter(), name: "XAI_API_KEY" },
   ],
   (name) => console.log(chalk.dim(`Key stored in: ${name}`)),
 )
+
+const keyStore: KeyStorePort = {
+  save: (key) => chain.save(key),
+  remove: () => chain.remove(),
+  get: async () => (await chain.get()) ?? process.env.XAI_API_KEY ?? null,
+}
 const imageGenerator = new GrokApiAdapter()
 const fileStorage = new FileStorageAdapter()
 

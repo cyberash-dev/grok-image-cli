@@ -4,7 +4,7 @@
 
 `grok-image-cli` — CLI-утилита для генерации и редактирования изображений через xAI Grok API. Устанавливается как npm-пакет, предоставляет команду `grok-img`.
 
-- **Версия**: 0.1.1
+- **Версия**: 0.3.2
 - **Лицензия**: MIT
 - **Платформа**: кроссплатформенная (macOS, Windows, Linux)
 - **Runtime**: Node.js >= 20.19.0, ESM
@@ -74,7 +74,6 @@ src/
 │       ├── grok-api.adapter.ts              # ImageGeneratorPort → xAI SDK
 │       ├── keychain.adapter.ts              # KeyStorePort → cross-keychain (OS Keychain)
 │       ├── pass.adapter.ts                  # KeyStorePort → pass/gopass CLI
-│       ├── env-key-store.adapter.ts         # KeyStorePort → XAI_API_KEY (read-only)
 │       └── file-storage.adapter.ts          # FileStoragePort → Node.js fs
 │   └── key-store-chain.ts                   # KeyStorePort (Chain of Responsibility)
 └── presentation/
@@ -201,11 +200,15 @@ type FileStoragePort = {
 `onSave(storeName)`, вызываемый при успешном сохранении.
 
 - **save**: перебирает хранилища по порядку, сохраняет в первое доступное; при
-  успехе вызывает `onSave(name)`; если все хранилища недоступны — бросает последнюю ошибку
+  успехе вызывает `onSave(name)`; если все хранилища недоступны — бросает ошибку
+  с инструкцией по настройке `XAI_API_KEY`
 - **get**: возвращает первый ненулевой результат из цепочки
 - **remove**: удаляет из всех хранилищ (best-effort, ошибки поглощаются)
 
-**Цепочка по умолчанию**: `KeychainAdapter → PassAdapter → EnvKeyStoreAdapter`
+**Цепочка по умолчанию**: `KeychainAdapter → PassAdapter`
+
+Fallback для `get()` — переменная окружения `XAI_API_KEY`, подключается в
+Composition Root (`main.ts`) как инлайн-обёртка поверх цепочки.
 
 ### KeychainAdapter
 
@@ -237,17 +240,6 @@ type FileStoragePort = {
 - **save**: `gopass insert -f` / `pass insert -m --force` (stdin)
 - **get**: `gopass show` / `pass show`, первая строка вывода
 - **remove**: `gopass rm -f` / `pass rm --force`
-
-### EnvKeyStoreAdapter
-
-Файл: `infrastructure/adapters/env-key-store.adapter.ts`
-
-Реализует `KeyStorePort`. Read-only адаптер для переменной окружения `XAI_API_KEY`.
-Используется как последний fallback в цепочке.
-
-- **get**: возвращает `process.env.XAI_API_KEY ?? null`
-- **save**: бросает ошибку (переменная окружения доступна только для чтения)
-- **remove**: no-op
 
 ### FileStorageAdapter
 
@@ -364,7 +356,9 @@ graph LR
 - API-ключ хранится через цепочку резервных хранилищ:
   1. **Keychain** — нативное хранилище ОС (macOS Keychain / Windows Credential Manager / Linux Secret Service)
   2. **pass/gopass** — GPG-шифрованное CLI-хранилище паролей; работает в headless/SSH-окружениях
-  3. **XAI_API_KEY** — переменная окружения (только для чтения, используется как последний fallback)
+- Если ни одно хранилище недоступно, `auth login` выводит инструкцию с предложением
+  задать переменную окружения `XAI_API_KEY` вручную
+- `XAI_API_KEY` — fallback только для чтения (`get()`); `auth login` в неё не пишет
 - При сохранении ключа пользователю выводится сообщение о том, в какое хранилище он записан
 - Все запросы к API — по HTTPS
 - При отображении ключа в `auth status` — маскировка (первые 4 + последние 4 символа)

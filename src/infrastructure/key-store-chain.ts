@@ -9,17 +9,18 @@ export class KeyStoreChain implements KeyStorePort {
   ) {}
 
   async save(key: string): Promise<void> {
-    let lastError: unknown
     for (const { store, name } of this.stores) {
       try {
         await store.save(key)
         this.onSave?.(name)
         return
-      } catch (e) {
-        lastError = e
-      }
+      } catch {}
     }
-    throw lastError
+    throw new Error(
+      "Could not save the API key: Keychain is unavailable and pass/gopass is not installed.\n" +
+        "Set the environment variable instead:\n\n" +
+        "  export XAI_API_KEY=<your-key>",
+    )
   }
 
   async get(): Promise<string | null> {
