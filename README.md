@@ -1,3 +1,9 @@
+
+
+<p align="center">
+  <img src="assets/readme-banner.png" width="100%" alt="grok-image-cli banner"/>
+</p>
+
 # grok-img
 
 CLI for generating and editing images with Grok API, powered by `@ai-sdk/xai`.
